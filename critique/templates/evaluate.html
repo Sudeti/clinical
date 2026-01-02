@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-black">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sovereign Critic</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+        body { font-family: 'JetBrains Mono', monospace; }
+        .brutalist-box { border: 3px solid #fff; background: #0a0a0a; }
+    </style>
+</head>
+<body class="bg-black text-white p-6">
+
+<div class="max-w-7xl mx-auto">
+    
+    <div class="brutalist-box p-6 mb-6">
+        <h1 class="text-3xl font-bold">═══ SOVEREIGN CRITIC ═══</h1>
+        <p class="text-sm text-gray-400 mt-2">Multi-LLM Ruthless Evaluation Engine</p>
+        <div class="mt-4">
+            <a href="{% url 'generate_comment' %}" class="text-blue-400 hover:text-blue-300 underline">
+                → Arbitrage Comment Engine (High-Frequency Engagement)
+            </a>
+        </div>
+    </div>
+    
+    {% if messages %}
+        {% for message in messages %}
+        <div class="brutalist-box p-4 mb-4 {% if message.tags == 'error' %}border-red-500{% else %}border-green-500{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    {% endif %}
+    
+    <div class="brutalist-box p-6 mb-6">
+        <h2 class="text-xl font-bold mb-4 border-b-2 border-white pb-2">SUBMIT DRAFT</h2>
+        
+        <form method="POST" class="space-y-4">
+            {% csrf_token %}
+            
+            <div>
+                <label class="block text-sm mb-2">DRAFT TEXT (minimum 100 characters)</label>
+                <textarea 
+                    name="draft_text" 
+                    rows="15"
+                    class="w-full bg-black text-white border-2 border-white p-4 font-mono focus:outline-none focus:border-green-500"
+                    placeholder="Paste your LinkedIn draft here for ruthless evaluation..."
+                    required
+                ></textarea>
+            </div>
+            
+            <button 
+                type="submit"
+                class="brutalist-box bg-black text-white px-8 py-3 hover:bg-white hover:text-black transition-colors font-bold"
+            >
+                EXECUTE CRITIQUE
+            </button>
+        </form>
+    </div>
+    
+    {% if current_critique %}
+
+    <!-- CONSENSUS METRICS (NEW) -->
+<div class="brutalist-box p-6 mb-6">
+    <h3 class="text-xl font-bold border-b-2 border-white pb-2 mb-4">
+        ═══ CONSENSUS ANALYSIS ═══
+    </h3>
+    
+    <div class="grid grid-cols-2 gap-6">
+        <div>
+            <div class="text-sm text-gray-400 mb-2">AVERAGE CLINICAL SCORE</div>
+            <div class="text-4xl font-bold {% if current_critique.avg_clinical_score >= 70 %}text-green-500{% elif current_critique.avg_clinical_score >= 50 %}text-yellow-500{% else %}text-red-500{% endif %}">
+                {% if current_critique.avg_clinical_score %}
+                    {{ current_critique.avg_clinical_score }}%
+                {% else %}
+                    N/A
+                {% endif %}
+            </div>
+        </div>
+        
+        <div>
+            <div class="text-sm text-gray-400 mb-2">CONSENSUS VERDICT</div>
+            <div class="text-4xl font-bold {% if current_critique.consensus_verdict == 'CLEAR' %}text-green-500{% elif current_critique.consensus_verdict == 'REJECT' %}text-red-500{% else %}text-yellow-500{% endif %}">
+                {{ current_critique.consensus_verdict|default:"PENDING" }}
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-6 pt-6 border-t-2 border-gray-800">
+        <div class="text-sm text-gray-400">
+            {% if current_critique.consensus_verdict == 'CLEAR' %}
+                ✓ All systems nominal. Content cleared for publication.
+            {% elif current_critique.consensus_verdict == 'REJECT' %}
+                ✗ Structural failure detected. Major revision required.
+            {% else %}
+                ⚠ Refinement needed. Review specific critique points below.
+            {% endif %}
+        </div>
+    </div>
+</div>
+<!-- REDRAFTS (if available) -->
+{% if redrafts %}
+<div class="brutalist-box p-6 mb-6">
+    <h3 class="text-xl font-bold border-b-2 border-white pb-2 mb-4">
+        ═══ LLM REDRAFTS ═══
+    </h3>
+    <p class="text-sm text-gray-400 mb-6">
+        Each LLM has rewritten your draft to fix identified issues. Compare and select the best version.
+    </p>
+    
+    {% for redraft in redrafts %}
+    <div class="border-2 border-gray-700 p-6 mb-4">
+        <div class="flex justify-between items-center mb-4">
+            <h4 class="font-bold text-lg">{{ redraft.get_llm_source_display }} REDRAFT</h4>
+            <button 
+                onclick="copyToClipboard('redraft-{{ redraft.id }}')"
+                class="brutalist-box bg-black text-white px-4 py-2 text-sm hover:bg-white hover:text-black"
+            >
+                COPY
+            </button>
+        </div>
+        <pre id="redraft-{{ redraft.id }}" class="whitespace-pre-wrap font-mono text-sm bg-slate-900 p-4 border-l-4 border-green-500">{{ redraft.redrafted_text }}</pre>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+function copyToClipboard(elementId) {
+    const text = document.getElementById(elementId).innerText;
+    navigator.clipboard.writeText(text).then(() => {
+        alert('Copied to clipboard');
+    });
+}
+</script>
+{% endif %}
+    <div class="space-y-6">
+        
+        <div class="brutalist-box p-6">
+            <h3 class="text-lg font-bold border-b-2 border-green-500 pb-2 mb-4">
+                CLAUDE SONNET 4 ANALYSIS
+            </h3>
+            <pre class="text-sm text-green-400 whitespace-pre-wrap">{{ current_critique.claude_critique }}</pre>
+        </div>
+        
+        <div class="brutalist-box p-6">
+            <h3 class="text-lg font-bold border-b-2 border-blue-500 pb-2 mb-4">
+                GPT-4 TURBO ANALYSIS
+            </h3>
+            <pre class="text-sm text-blue-400 whitespace-pre-wrap">{{ current_critique.gpt_critique }}</pre>
+        </div>
+        
+        <div class="brutalist-box p-6">
+            <h3 class="text-lg font-bold border-b-2 border-yellow-500 pb-2 mb-4">
+                GEMINI PRO ANALYSIS
+            </h3>
+            <pre class="text-sm text-yellow-400 whitespace-pre-wrap">{{ current_critique.gemini_critique }}</pre>
+        </div>
+        
+    </div>
+    {% endif %}
+    
+    <div class="brutalist-box p-6 mt-6">
+        <h3 class="text-lg font-bold border-b-2 border-white pb-2 mb-4">
+            HISTORICAL REFERENCE
+        </h3>
+        {% if archived_posts %}
+            {% for post in archived_posts %}
+            <div class="border-b border-gray-800 pb-3 mb-3">
+                <div class="text-xs text-gray-500">{{ post.published_date }}</div>
+                <div class="font-bold">{{ post.title }}</div>
+                <div class="text-xs text-gray-400 mt-1">
+                    Saves: {{ post.linkedin_saves }} | HV Comments: {{ post.high_value_engagement }}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-gray-500">No archived posts. Add via Django admin.</p>
+        {% endif %}
+    </div>
+
+</div>
+
+</body>
+</html>

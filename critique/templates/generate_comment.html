@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-black">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arbitrage Comment Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+        body { font-family: 'JetBrains Mono', monospace; }
+        .brutalist-box { border: 3px solid #fff; background: #0a0a0a; }
+    </style>
+</head>
+<body class="bg-black text-white p-6">
+
+<div class="max-w-7xl mx-auto">
+    
+    <div class="brutalist-box p-6 mb-6">
+        <h1 class="text-3xl font-bold">═══ ARBITRAGE COMMENT ENGINE ═══</h1>
+        <p class="text-sm text-gray-400 mt-2">High-Frequency Engagement Tool | 3 Clinical Options</p>
+        <div class="mt-4">
+            <a href="/" class="text-green-400 hover:text-green-300 underline">← Back to Draft Critique</a>
+        </div>
+    </div>
+    
+    {% if messages %}
+        {% for message in messages %}
+        <div class="brutalist-box p-4 mb-4 {% if message.tags == 'error' %}border-red-500{% else %}border-green-500{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    {% endif %}
+    
+    <div class="brutalist-box p-6 mb-6">
+        <h2 class="text-xl font-bold mb-4 border-b-2 border-white pb-2">GENERATE COMMENT OPTIONS</h2>
+        
+        <form method="POST" class="space-y-4">
+            {% csrf_token %}
+            
+            <div>
+                <label class="block text-sm mb-2">LINKEDIN URL (Optional)</label>
+                <input 
+                    type="url" 
+                    name="source_url" 
+                    class="w-full bg-black text-white border-2 border-white p-3 font-mono focus:outline-none focus:border-green-500"
+                    placeholder="https://www.linkedin.com/posts/..."
+                />
+            </div>
+            
+            <div>
+                <label class="block text-sm mb-2">POST/COMMENT TEXT TO RESPOND TO (minimum 20 characters)</label>
+                <textarea 
+                    name="source_text" 
+                    rows="8"
+                    class="w-full bg-black text-white border-2 border-white p-4 font-mono focus:outline-none focus:border-green-500"
+                    placeholder="Paste the LinkedIn post or comment you want to respond to..."
+                    required
+                ></textarea>
+            </div>
+            
+            <button 
+                type="submit"
+                class="brutalist-box bg-black text-white px-8 py-3 hover:bg-white hover:text-black transition-colors font-bold"
+            >
+                GENERATE 3 OPTIONS
+            </button>
+        </form>
+    </div>
+    
+    {% if current_generation %}
+    <div class="brutalist-box p-6 mb-6">
+        <h3 class="text-xl font-bold border-b-2 border-white pb-2 mb-4">
+            ═══ GENERATED OPTIONS ═══
+        </h3>
+        
+        <div class="mb-4 p-4 bg-slate-900 border-l-4 border-gray-600">
+            <div class="text-xs text-gray-400 mb-2">ORIGINAL SOURCE:</div>
+            <div class="text-sm">{{ current_generation.source_text|truncatewords:50 }}</div>
+            {% if current_generation.source_url %}
+            <div class="mt-2">
+                <a href="{{ current_generation.source_url }}" target="_blank" class="text-blue-400 hover:underline text-xs">
+                    View on LinkedIn →
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Option 1: Analytical -->
+        <div class="border-2 border-green-500 p-6 mb-4">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h4 class="font-bold text-lg text-green-400">OPTION 1: ANALYTICAL ANGLE</h4>
+                    <p class="text-xs text-gray-400">Systems & Structural Analysis</p>
+                </div>
+                <div class="flex gap-2">
+                    <button 
+                        onclick="copyToClipboard('option-1')"
+                        class="brutalist-box bg-black text-white px-4 py-2 text-sm hover:bg-white hover:text-black"
+                    >
+                        COPY
+                    </button>
+                    <a 
+                        href="{% url 'select_comment_option' current_generation.id 1 %}"
+                        class="brutalist-box bg-green-900 text-white px-4 py-2 text-sm hover:bg-green-700 {% if current_generation.selected_option == 1 %}border-4{% endif %}"
+                    >
+                        {% if current_generation.selected_option == 1 %}✓ SELECTED{% else %}SELECT{% endif %}
+                    </a>
+                </div>
+            </div>
+            <pre id="option-1" class="whitespace-pre-wrap font-mono text-sm bg-slate-900 p-4 border-l-4 border-green-500">{{ current_generation.comment_option_1 }}</pre>
+        </div>
+        
+        <!-- Option 2: Framework -->
+        <div class="border-2 border-blue-500 p-6 mb-4">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h4 class="font-bold text-lg text-blue-400">OPTION 2: FRAMEWORK ANGLE</h4>
+                    <p class="text-xs text-gray-400">Conceptual Model Introduction</p>
+                </div>
+                <div class="flex gap-2">
+                    <button 
+                        onclick="copyToClipboard('option-2')"
+                        class="brutalist-box bg-black text-white px-4 py-2 text-sm hover:bg-white hover:text-black"
+                    >
+                        COPY
+                    </button>
+                    <a 
+                        href="{% url 'select_comment_option' current_generation.id 2 %}"
+                        class="brutalist-box bg-blue-900 text-white px-4 py-2 text-sm hover:bg-blue-700 {% if current_generation.selected_option == 2 %}border-4{% endif %}"
+                    >
+                        {% if current_generation.selected_option == 2 %}✓ SELECTED{% else %}SELECT{% endif %}
+                    </a>
+                </div>
+            </div>
+            <pre id="option-2" class="whitespace-pre-wrap font-mono text-sm bg-slate-900 p-4 border-l-4 border-blue-500">{{ current_generation.comment_option_2 }}</pre>
+        </div>
+        
+        <!-- Option 3: Counterpoint -->
+        <div class="border-2 border-yellow-500 p-6 mb-4">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h4 class="font-bold text-lg text-yellow-400">OPTION 3: COUNTERPOINT ANGLE</h4>
+                    <p class="text-xs text-gray-400">Respectful Challenge or Extension</p>
+                </div>
+                <div class="flex gap-2">
+                    <button 
+                        onclick="copyToClipboard('option-3')"
+                        class="brutalist-box bg-black text-white px-4 py-2 text-sm hover:bg-white hover:text-black"
+                    >
+                        COPY
+                    </button>
+                    <a 
+                        href="{% url 'select_comment_option' current_generation.id 3 %}"
+                        class="brutalist-box bg-yellow-900 text-white px-4 py-2 text-sm hover:bg-yellow-700 {% if current_generation.selected_option == 3 %}border-4{% endif %}"
+                    >
+                        {% if current_generation.selected_option == 3 %}✓ SELECTED{% else %}SELECT{% endif %}
+                    </a>
+                </div>
+            </div>
+            <pre id="option-3" class="whitespace-pre-wrap font-mono text-sm bg-slate-900 p-4 border-l-4 border-yellow-500">{{ current_generation.comment_option_3 }}</pre>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Recent Generations -->
+    {% if recent_generations %}
+    <div class="brutalist-box p-6 mt-6">
+        <h3 class="text-lg font-bold border-b-2 border-white pb-2 mb-4">
+            RECENT GENERATIONS
+        </h3>
+        {% for gen in recent_generations %}
+        <div class="border-b border-gray-800 pb-3 mb-3">
+            <div class="text-xs text-gray-500">{{ gen.created_at|date:"Y-m-d H:i" }}</div>
+            <div class="text-sm font-mono mt-1">{{ gen.source_text|truncatewords:20 }}</div>
+            <div class="text-xs text-gray-400 mt-1">
+                {% if gen.selected_option %}
+                    Selected: Option {{ gen.selected_option }}
+                {% else %}
+                    No option selected
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</div>
+
+<script>
+function copyToClipboard(elementId) {
+    const text = document.getElementById(elementId).innerText;
+    navigator.clipboard.writeText(text).then(() => {
+        alert('Copied to clipboard!');
+    });
+}
+</script>
+
+</body>
+</html>
+
