@@ -9,22 +9,8 @@ from .comment_generator import CommentGenerator
 
 @login_required
 def evaluate_draft(request):
-    """Main evaluation interface."""
-    persona, created = PersonaBio.objects.get_or_create(
-        user=request.user,
-        defaults={
-            'professional_title': 'Policy Analyst',
-            'core_expertise': 'To be configured',
-        }
-    )
-    
-    # Check if persona needs configuration
-    if persona.core_expertise == 'To be configured':
-        messages.warning(
-            request, 
-            "⚠ Configure your Persona in Django Admin for better critiques."
-        )
-    
+    """Main evaluation interface - Async Version."""
+    persona, _ = PersonaBio.objects.get_or_create(user=request.user)
     archived_posts = ArchivedPost.objects.filter(user=request.user)[:5]
     recent_critiques = DraftCritique.objects.filter(user=request.user)[:5]
     
@@ -37,41 +23,23 @@ def evaluate_draft(request):
     if request.method == 'POST':
         draft_text = request.POST.get('draft_text', '').strip()
         
-        if not draft_text:
-            messages.error(request, "Draft text required.")
+        if not draft_text or len(draft_text) < 100:
+            messages.error(request, "Draft invalid or too short.")
             return render(request, 'evaluate.html', context)
         
-        if len(draft_text) < 100:
-            messages.error(request, "Draft too short for evaluation (min 100 chars).")
-            return render(request, 'evaluate.html', context)
-        
-        # Execute critique
-        critic_engine = SovereignCriticEngine(persona, archived_posts)
-        critiques = critic_engine.execute_full_critique(draft_text)
-        
-        # Calculate consensus metrics (NEW)
-        consensus = CritiqueAnalyzer.calculate_consensus(critiques)
-        
-        # Save to database with calculated fields
+        # 1. Create the record immediately in a 'PENDING' state
         critique_record = DraftCritique.objects.create(
             user=request.user,
             draft_text=draft_text,
-            claude_critique=critiques['claude'],
-            gpt_critique=critiques['gpt'],
-            gemini_critique=critiques['gemini'],
-            avg_clinical_score=consensus['avg_clinical_score'],  # NEW
-            consensus_verdict=consensus['consensus_verdict']      # NEW
+            consensus_verdict='PROCESSING' # Ensure your model choice allows this
         )
 
-        messages.success(
-            request, 
-            f"Critique #{critique_record.id} completed. "
-            f"Verdict: {consensus['consensus_verdict']} | "
-            f"Clinical Score: {consensus['avg_clinical_score'] or 'N/A'}"
-        )
-        
-        context['current_critique'] = critique_record
-        #context['redrafts'] = critique_record.redrafts.all()
+        # 2. TRIGGER THE TASK (This is the magic part)
+        from .tasks import run_full_critique_task
+        run_full_critique_task.delay(critique_record.id)
+
+        messages.success(request, "Sovereign analysis started. Refresh this page in ~30 seconds.")
+        return redirect('evaluate_draft')
     
     return render(request, 'evaluate.html', context)
 
