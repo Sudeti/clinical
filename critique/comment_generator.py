@@ -147,7 +147,7 @@ Comment:"""
                     {"role": "user", "content": full_prompt}
                 ],
                 temperature=0.4,
-                max_tokens=1000  # Increased from 500 to ensure complete comments
+                max_completion_tokens=1000  # Use max_completion_tokens to avoid unsupported parameter error
             )
             text = response.choices[0].message.content.strip()
             # Remove any prefixes GPT might add

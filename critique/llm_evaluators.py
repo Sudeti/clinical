@@ -105,7 +105,7 @@ DRAFT TO EVALUATE:
                     {"role": "user", "content": self.critique_prompt + draft_text}
                 ],
                 temperature=0.3,
-                max_tokens=2000
+                max_completion_tokens=2000
             )
             return response.choices[0].message.content
         except Exception as e:
