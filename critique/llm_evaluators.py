@@ -99,7 +99,7 @@ DRAFT TO EVALUATE:
         try:
             client = openai.OpenAI()
             response = client.chat.completions.create(
-                model="gpt-4-turbo",
+                model="gpt-5.2-2025-12-11",
                 messages=[
                     {"role": "system", "content": "You are a ruthless editorial critic."},
                     {"role": "user", "content": self.critique_prompt + draft_text}

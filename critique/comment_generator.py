@@ -141,7 +141,7 @@ Comment:"""
             full_prompt = self.base_prompt + source_text + angle_prompt
             
             response = self.openai_client.chat.completions.create(
-                model="gpt-4-turbo",
+                model="gpt-5.2-2025-12-11",
                 messages=[
                     {"role": "system", "content": "You are a clinical, analytical comment generator for LinkedIn. Output only the comment text, nothing else."},
                     {"role": "user", "content": full_prompt}
@@ -169,7 +169,7 @@ CRITICAL: Output ONLY the comment text itself. No explanations, no prefixes like
 Comment:"""
             full_prompt = self.base_prompt + source_text + angle_prompt
             
-            model = genai.GenerativeModel('gemini-3-flash-preview')
+            model = genai.GenerativeModel('gemini-3-pro-preview')
             response = model.generate_content(
                 full_prompt,
                 generation_config=genai.types.GenerationConfig(
