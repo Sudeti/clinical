@@ -70,7 +70,7 @@
     <div class="grid grid-cols-2 gap-6">
         <div>
             <div class="text-sm text-gray-400 mb-2">AVERAGE CLINICAL SCORE</div>
-            <div class="text-4xl font-bold {% if current_critique.avg_clinical_score >= 70 %}text-green-500{% elif current_critique.avg_clinical_score >= 50 %}text-yellow-500{% else %}text-red-500{% endif %}">
+            <div class="text-4xl font-bold {% if current_critique.avg_clinical_score and current_critique.avg_clinical_score >= 70 %}text-green-500{% elif current_critique.avg_clinical_score and current_critique.avg_clinical_score >= 50 %}text-yellow-500{% else %}text-red-500{% endif %}">
                 {% if current_critique.avg_clinical_score %}
                     {{ current_critique.avg_clinical_score }}%
                 {% else %}
@@ -97,6 +97,13 @@
                 ⚠ Refinement needed. Review specific critique points below.
             {% endif %}
         </div>
+
+        {% if current_critique and current_critique.artifact %}
+        <div class="mt-4 bg-slate-900 p-4 border-l-4 border-green-500">
+            <div class="text-sm text-gray-400 font-bold mb-2">Suggested 'Third Object' (Artifact)</div>
+            <div class="text-sm text-white font-mono whitespace-pre-wrap">{{ current_critique.artifact }}</div>
+        </div>
+        {% endif %}
     </div>
 </div>
 <!-- REDRAFTS (if available) -->
@@ -138,21 +145,21 @@ function copyToClipboard(elementId) {
         
         <div class="brutalist-box p-6">
             <h3 class="text-lg font-bold border-b-2 border-green-500 pb-2 mb-4">
-                CLAUDE SONNET 4 ANALYSIS
+                CLAUDE SONNET 4.5 ANALYSIS
             </h3>
             <pre class="text-sm text-green-400 whitespace-pre-wrap">{{ current_critique.claude_critique }}</pre>
         </div>
         
         <div class="brutalist-box p-6">
             <h3 class="text-lg font-bold border-b-2 border-blue-500 pb-2 mb-4">
-                GPT-4 TURBO ANALYSIS
+                GPT-5.2
             </h3>
             <pre class="text-sm text-blue-400 whitespace-pre-wrap">{{ current_critique.gpt_critique }}</pre>
         </div>
         
         <div class="brutalist-box p-6">
             <h3 class="text-lg font-bold border-b-2 border-yellow-500 pb-2 mb-4">
-                GEMINI PRO ANALYSIS
+                GEMINI 3 PRO ANALYSIS
             </h3>
             <pre class="text-sm text-yellow-400 whitespace-pre-wrap">{{ current_critique.gemini_critique }}</pre>
         </div>
@@ -161,6 +168,44 @@ function copyToClipboard(elementId) {
     {% endif %}
     
     <div class="brutalist-box p-6 mt-6">
+        <h3 class="text-lg font-bold border-b-2 border-white pb-2 mb-4">
+            HIGHLIGHTED SENTENCES (Triggers)
+        </h3>
+        {% if highlighted_draft %}
+            <div class="text-sm text-gray-300 mb-4">
+                <div class="font-bold mb-2">Draft with flagged sentences highlighted:</div>
+                <div class="whitespace-pre-wrap font-mono bg-slate-900 p-4 border-l-4 border-red-600">{{ highlighted_draft|safe }}</div>
+            </div>
+        {% else %}
+            <div class="text-sm text-gray-500 mb-4">No specific sentence triggers detected in the latest critique.</div>
+        {% endif %}
+
+        <h3 class="text-lg font-bold border-b-2 border-white pb-2 mb-4">
+            SOVEREIGN ALTERNATIVES (Forbidden Terms)
+        </h3>
+        {% if current_critique and current_critique.forbidden_alternatives %}
+        <div class="overflow-x-auto mb-4">
+            <table class="min-w-full text-sm text-left">
+                <thead>
+                    <tr class="text-gray-400">
+                        <th class="px-3 py-2">Forbidden Term</th>
+                        <th class="px-3 py-2">Suggested Alternatives</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for term, alts in current_critique.forbidden_alternatives.items %}
+                    <tr class="border-t border-gray-800">
+                        <td class="px-3 py-2 font-bold">{{ term }}</td>
+                        <td class="px-3 py-2">{{ alts|join:', ' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <div class="text-sm text-gray-500">No forbidden-term alternatives provided.</div>
+        {% endif %}
+
         <h3 class="text-lg font-bold border-b-2 border-white pb-2 mb-4">
             HISTORICAL REFERENCE
         </h3>

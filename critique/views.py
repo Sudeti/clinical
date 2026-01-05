@@ -12,12 +12,32 @@ def evaluate_draft(request):
     """Main evaluation interface - Async Version."""
     persona, _ = PersonaBio.objects.get_or_create(user=request.user)
     archived_posts = ArchivedPost.objects.filter(user=request.user)[:5]
-    recent_critiques = DraftCritique.objects.filter(user=request.user)[:5]
-    
+    recent_critiques = DraftCritique.objects.filter(user=request.user).order_by('-submitted_at')[:5]
+
+    # Expose current (most recent) critique for immediate UI feedback
+    current_critique = recent_critiques[0] if recent_critiques else None
+
+    # Prepare highlighted draft if sentence triggers exist
+    highlighted_draft = None
+    if current_critique and current_critique.sentence_triggers:
+        from django.utils.safestring import mark_safe
+        import re
+        sentences = re.split(r'(?<=[.!?])\s+', current_critique.draft_text.strip())
+        triggers = set(current_critique.sentence_triggers or [])
+        wrapped = []
+        for i, s in enumerate(sentences):
+            text = s
+            if i in triggers:
+                text = f"<mark class='bg-red-700 text-white p-0'>{s}</mark>"
+            wrapped.append(text)
+        highlighted_draft = mark_safe(' '.join(wrapped))
+
     context = {
         'persona': persona,
         'archived_posts': archived_posts,
-        'recent_critiques': recent_critiques
+        'recent_critiques': recent_critiques,
+        'current_critique': current_critique,
+        'highlighted_draft': highlighted_draft
     }
     
     if request.method == 'POST':

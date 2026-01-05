@@ -42,7 +42,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'critique',
+    'django.contrib.postgres',
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -131,3 +133,10 @@ CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
 CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
+
+# Claim extraction defaults
+EMBEDDING_MODEL = os.getenv('EMBEDDING_MODEL', 'text-embedding-3-small')
+EXTRACTOR_MODEL = os.getenv('EXTRACTOR_MODEL', 'gpt-4o-mini')
+# Development/testing helper: use a local, deterministic extractor and fake embeddings when True
+CLAIMS_USE_FAKE_EXTRACTOR = os.getenv('CLAIMS_USE_FAKE_EXTRACTOR', 'False') == 'True'
+EMBEDDING_DIM = int(os.getenv('EMBEDDING_DIM', '1536'))

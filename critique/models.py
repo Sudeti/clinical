@@ -93,15 +93,32 @@ class DraftCritique(models.Model):
     gemini_critique = models.TextField(blank=True)
     
     avg_clinical_score = models.DecimalField(
-        max_digits=4,
+        max_digits=5,
         decimal_places=1,
         null=True,
         blank=True
     )
     
+    # Additional structured fields to support UI/analysis
+    historical_avg_clinical_score = models.DecimalField(
+        max_digits=5,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        help_text="Average clinical tone score computed from top archived posts"
+    )
+
+    artifact = models.TextField(blank=True, help_text="Third Object (framework/matrix) suggested by LLM")
+
+    # Requires Django >= 3.1 for JSONField
+    from django.db.models import JSONField
+    forbidden_alternatives = JSONField(null=True, blank=True, default=dict)
+    sentence_triggers = JSONField(null=True, blank=True, default=list)
+
     consensus_verdict = models.CharField(
         max_length=20,
         choices=[
+            ('PROCESSING', 'Processing'),
             ('CLEAR', 'Clear for Publication'),
             ('REVISE', 'Requires Revision'),
             ('REJECT', 'Structural Failure')
@@ -111,6 +128,10 @@ class DraftCritique(models.Model):
     
     class Meta:
         ordering = ['-submitted_at']
+        indexes = [
+            models.Index(fields=['user', 'submitted_at']),
+            models.Index(fields=['submitted_at']),
+        ]
     
     def __str__(self):
         return f"Critique {self.id} - {self.submitted_at.strftime('%Y-%m-%d %H:%M')}"
@@ -154,6 +175,10 @@ class CommentGeneration(models.Model):
     
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'created_at']),
+            models.Index(fields=['created_at']),
+        ]
     
     def __str__(self):
         return f"Comment Generation {self.id} - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
