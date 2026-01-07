@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-black">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluation Detail - Orwell-Hitchens</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+        body { font-family: 'JetBrains Mono', monospace; }
+        .brutalist-box { border: 3px solid #fff; background: #0a0a0a; }
+    </style>
+</head>
+<body class="bg-black text-white p-6">
+
+<div class="max-w-7xl mx-auto">
+    
+    <div class="brutalist-box p-6 mb-6">
+        <h1 class="text-3xl font-bold">═══ EVALUATION #{{ evaluation.id }} ═══</h1>
+        <p class="text-sm text-gray-400 mt-2">Submitted: {{ evaluation.submitted_at|date:"Y-m-d H:i:s" }}</p>
+        <div class="mt-4">
+            <a href="{% url 'orwell_history' %}" class="text-green-400 hover:text-green-300 underline">
+                ← Back to History
+            </a>
+        </div>
+    </div>
+
+    <!-- ORIGINAL DRAFT -->
+    <div class="brutalist-box p-6 mb-6">
+        <h3 class="text-xl font-bold border-b-2 border-white pb-2 mb-4">ORIGINAL DRAFT</h3>
+        <div class="whitespace-pre-wrap font-mono text-sm bg-slate-900 p-4 border-l-4 border-gray-600">{{ evaluation.draft_text }}</div>
+    </div>
+    
+    <!-- SCORES -->
+    <div class="brutalist-box p-6 mb-6">
+        <h3 class="text-xl font-bold border-b-2 border-white pb-2 mb-4">EVALUATION SCORES</h3>
+        
+        <div class="grid grid-cols-2 gap-6 mb-6">
+            <div>
+                <div class="text-sm text-gray-400 mb-2">OVERALL SCORE (WEIGHTED)</div>
+                <div class="text-5xl font-bold {% if evaluation.overall_score and evaluation.overall_score >= 75 %}text-green-500{% elif evaluation.overall_score and evaluation.overall_score >= 60 %}text-yellow-500{% else %}text-red-500{% endif %}">
+                    {% if evaluation.overall_score %}{{ evaluation.overall_score }}{% else %}--{% endif %}
+                </div>
+            </div>
+            
+            <div>
+                <div class="text-sm text-gray-400 mb-2">VERDICT</div>
+                <div class="text-4xl font-bold {% if evaluation.consensus_verdict == 'PUBLISH' %}text-green-500{% elif evaluation.consensus_verdict == 'REWRITE' %}text-red-500{% else %}text-yellow-500{% endif %}">
+                    {{ evaluation.consensus_verdict|default:"PROCESSING" }}
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-4 gap-4 pt-6 border-t-2 border-gray-800">
+            <div>
+                <div class="text-xs text-gray-400 mb-1">ORWELLIAN CLARITY (40%)</div>
+                <div class="text-2xl font-bold text-green-400">
+                    {% if evaluation.orwellian_clarity_score %}{{ evaluation.orwellian_clarity_score }}{% else %}--{% endif %}
+                </div>
+            </div>
+            
+            <div>
+                <div class="text-xs text-gray-400 mb-1">HITCHENSIAN FIRE (30%)</div>
+                <div class="text-2xl font-bold text-blue-400">
+                    {% if evaluation.hitchensian_fire_score %}{{ evaluation.hitchensian_fire_score }}{% else %}--{% endif %}
+                </div>
+            </div>
+            
+            <div>
+                <div class="text-xs text-gray-400 mb-1">VIVID PHYSICALITY (20%)</div>
+                <div class="text-2xl font-bold text-yellow-400">
+                    {% if evaluation.vivid_physicality_score %}{{ evaluation.vivid_physicality_score }}{% else %}--{% endif %}
+                </div>
+            </div>
+            
+            <div>
+                <div class="text-xs text-gray-400 mb-1">TECHNICAL (10%)</div>
+                <div class="text-2xl font-bold text-purple-400">
+                    {% if evaluation.technical_execution_score %}{{ evaluation.technical_execution_score }}{% else %}--{% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LLM CRITIQUES -->
+    <div class="space-y-6">
+        
+        <div class="brutalist-box p-6">
+            <h3 class="text-lg font-bold border-b-2 border-green-500 pb-2 mb-4">
+                CLAUDE SONNET 4 ANALYSIS
+            </h3>
+            <pre class="text-sm text-green-400 whitespace-pre-wrap">{{ evaluation.claude_critique }}</pre>
+        </div>
+        
+        <div class="brutalist-box p-6">
+            <h3 class="text-lg font-bold border-b-2 border-blue-500 pb-2 mb-4">
+                GPT-4O ANALYSIS
+            </h3>
+            <pre class="text-sm text-blue-400 whitespace-pre-wrap">{{ evaluation.gpt_critique }}</pre>
+        </div>
+        
+        <div class="brutalist-box p-6">
+            <h3 class="text-lg font-bold border-b-2 border-yellow-500 pb-2 mb-4">
+                GEMINI 2.0 FLASH ANALYSIS
+            </h3>
+            <pre class="text-sm text-yellow-400 whitespace-pre-wrap">{{ evaluation.gemini_critique }}</pre>
+        </div>
+        
+    </div>
+
+</div>
+
+</body>
+</html>
+

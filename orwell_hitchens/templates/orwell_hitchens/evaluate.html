@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-black">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orwell-Hitchens Writing Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+        body { font-family: 'JetBrains Mono', monospace; }
+        .brutalist-box { border: 3px solid #fff; background: #0a0a0a; }
+    </style>
+</head>
+<body class="bg-black text-white p-6">
+
+<div class="max-w-7xl mx-auto">
+    
+    <div class="brutalist-box p-6 mb-6">
+        <h1 class="text-3xl font-bold">═══ ORWELL-HITCHENS WRITING ENGINE ═══</h1>
+        <p class="text-sm text-gray-400 mt-2">Concrete Language • Ruthless Logic • Vivid Imagery</p>
+        <div class="mt-4 flex gap-4">
+            <a href="/" class="text-green-400 hover:text-green-300 underline">
+                ← Clinical Sovereign Critic
+            </a>
+            <a href="{% url 'orwell_history' %}" class="text-blue-400 hover:text-blue-300 underline">
+                Evaluation History →
+            </a>
+        </div>
+    </div>
+    
+    {% if messages %}
+        {% for message in messages %}
+        <div class="brutalist-box p-4 mb-4 {% if message.tags == 'error' %}border-red-500{% else %}border-green-500{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    {% endif %}
+    
+    <div class="brutalist-box p-6 mb-6">
+        <h2 class="text-xl font-bold mb-4 border-b-2 border-white pb-2">SUBMIT DRAFT</h2>
+        
+        <form method="POST" class="space-y-4">
+            {% csrf_token %}
+            
+            <div>
+                <label class="block text-sm mb-2">DRAFT TEXT (minimum 100 characters)</label>
+                <textarea 
+                    name="draft_text" 
+                    rows="15"
+                    class="w-full bg-black text-white border-2 border-white p-4 font-mono focus:outline-none focus:border-green-500"
+                    placeholder="Paste your writing here for Orwell-Hitchens evaluation...
+
+The engine will assess:
+• Concrete vs. abstract language (Orwell)
+• Argument structure and wit (Hitchens)
+• Sensory imagery and metaphor coherence
+• Technical execution (grammar, flow, redundancies)"
+                    required
+                ></textarea>
+            </div>
+            
+            <button 
+                type="submit"
+                class="brutalist-box bg-black text-white px-8 py-3 hover:bg-white hover:text-black transition-colors font-bold"
+            >
+                EXECUTE EVALUATION
+            </button>
+        </form>
+    </div>
+    
+    {% if current_evaluation %}
+
+    <!-- CONSENSUS METRICS -->
+    <div class="brutalist-box p-6 mb-6">
+        <h3 class="text-xl font-bold border-b-2 border-white pb-2 mb-4">
+            ═══ EVALUATION RESULTS ═══
+        </h3>
+        
+        <div class="grid grid-cols-2 gap-6 mb-6">
+            <div>
+                <div class="text-sm text-gray-400 mb-2">OVERALL SCORE (WEIGHTED)</div>
+                <div class="text-5xl font-bold {% if current_evaluation.overall_score and current_evaluation.overall_score >= 75 %}text-green-500{% elif current_evaluation.overall_score and current_evaluation.overall_score >= 60 %}text-yellow-500{% else %}text-red-500{% endif %}">
+                    {% if current_evaluation.overall_score %}
+                        {{ current_evaluation.overall_score }}
+                    {% else %}
+                        --
+                    {% endif %}
+                </div>
+                {% if current_evaluation.historical_avg_score %}
+                <div class="text-xs text-gray-500 mt-2">
+                    Your historical avg: {{ current_evaluation.historical_avg_score }}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div>
+                <div class="text-sm text-gray-400 mb-2">VERDICT</div>
+                <div class="text-4xl font-bold {% if current_evaluation.consensus_verdict == 'PUBLISH' %}text-green-500{% elif current_evaluation.consensus_verdict == 'REWRITE' %}text-red-500{% else %}text-yellow-500{% endif %}">
+                    {{ current_evaluation.consensus_verdict|default:"PROCESSING" }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Score Breakdown -->
+        <div class="grid grid-cols-4 gap-4 pt-6 border-t-2 border-gray-800">
+            <div>
+                <div class="text-xs text-gray-400 mb-1">ORWELLIAN CLARITY (40%)</div>
+                <div class="text-2xl font-bold text-green-400">
+                    {% if current_evaluation.orwellian_clarity_score %}
+                        {{ current_evaluation.orwellian_clarity_score }}
+                    {% else %}--{% endif %}
+                </div>
+                <div class="text-xs text-gray-500 mt-1">Concrete, active, varied</div>
+            </div>
+            
+            <div>
+                <div class="text-xs text-gray-400 mb-1">HITCHENSIAN FIRE (30%)</div>
+                <div class="text-2xl font-bold text-blue-400">
+                    {% if current_evaluation.hitchensian_fire_score %}
+                        {{ current_evaluation.hitchensian_fire_score }}
+                    {% else %}--{% endif %}
+                </div>
+                <div class="text-xs text-gray-500 mt-1">Argument, wit, honesty</div>
+            </div>
+            
+            <div>
+                <div class="text-xs text-gray-400 mb-1">VIVID PHYSICALITY (20%)</div>
+                <div class="text-2xl font-bold text-yellow-400">
+                    {% if current_evaluation.vivid_physicality_score %}
+                        {{ current_evaluation.vivid_physicality_score }}
+                    {% else %}--{% endif %}
+                </div>
+                <div class="text-xs text-gray-500 mt-1">Sensory, metaphorical</div>
+            </div>
+            
+            <div>
+                <div class="text-xs text-gray-400 mb-1">TECHNICAL (10%)</div>
+                <div class="text-2xl font-bold text-purple-400">
+                    {% if current_evaluation.technical_execution_score %}
+                        {{ current_evaluation.technical_execution_score }}
+                    {% else %}--{% endif %}
+                </div>
+                <div class="text-xs text-gray-500 mt-1">Grammar, flow, clean</div>
+            </div>
+        </div>
+        
+        <div class="mt-6 pt-6 border-t-2 border-gray-800">
+            <div class="text-sm text-gray-300">
+                {% if current_evaluation.consensus_verdict == 'PUBLISH' %}
+                    ✓ Writing meets Orwell-Hitchens standards. Ready for publication.
+                {% elif current_evaluation.consensus_verdict == 'REWRITE' %}
+                    ✗ Structural failures detected. Requires fundamental rewrite.
+                {% elif current_evaluation.consensus_verdict == 'REVISE' %}
+                    ⚠ Good foundation but needs refinement. Review specific issues below.
+                {% else %}
+                    ⏳ Evaluation in progress...
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- COACHING FEEDBACK (IMPROVEMENT GUIDANCE) -->
+    {% if current_evaluation.diagnostic_summary or current_evaluation.before_after_examples %}
+    <div class="brutalist-box p-6 mb-6">
+        <h3 class="text-xl font-bold border-b-2 border-cyan-500 pb-2 mb-4">
+            ═══ COACHING FEEDBACK ═══
+        </h3>
+        
+        {% if current_evaluation.one_sentence_verdict %}
+        <div class="mb-6 p-4 bg-cyan-900 bg-opacity-20 border-l-4 border-cyan-500">
+            <div class="text-sm font-bold text-cyan-400 mb-2">ONE-SENTENCE VERDICT</div>
+            <div class="text-base italic">{{ current_evaluation.one_sentence_verdict }}</div>
+        </div>
+        {% endif %}
+        
+        {% if current_evaluation.diagnostic_summary %}
+        <div class="mb-6">
+            <div class="text-sm font-bold text-blue-400 mb-2">📊 DIAGNOSTIC ANALYSIS</div>
+            <div class="bg-blue-900 bg-opacity-20 p-4 border-l-4 border-blue-500">
+                <div class="text-sm whitespace-pre-wrap">{{ current_evaluation.diagnostic_summary }}</div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if current_evaluation.before_after_examples %}
+        <div class="mb-6">
+            <div class="text-sm font-bold text-green-400 mb-3">✏️ BEFORE/AFTER REWRITES</div>
+            {% for example in current_evaluation.before_after_examples %}
+            <div class="mb-4 border-2 border-gray-700 p-4">
+                <div class="mb-2">
+                    <div class="text-xs text-gray-400 mb-1">BEFORE (weak):</div>
+                    <div class="bg-red-900 bg-opacity-20 p-2 text-sm font-mono border-l-2 border-red-500">
+                        {{ example.original }}
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <div class="text-xs text-gray-400 mb-1">AFTER (improved):</div>
+                    <div class="bg-green-900 bg-opacity-20 p-2 text-sm font-mono border-l-2 border-green-500">
+                        {{ example.improved }}
+                    </div>
+                </div>
+                <div>
+                    <div class="text-xs text-gray-400 mb-1">WHY THIS WORKS:</div>
+                    <div class="text-xs text-gray-300 italic">{{ example.explanation }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        {% if current_evaluation.strengths_to_amplify %}
+        <div class="mb-6">
+            <div class="text-sm font-bold text-green-400 mb-2">✓ STRENGTHS TO AMPLIFY</div>
+            <div class="bg-green-900 bg-opacity-20 p-3 border-l-4 border-green-500">
+                <ul class="text-sm space-y-1">
+                    {% for strength in current_evaluation.strengths_to_amplify %}
+                    <li>• {{ strength }}</li>
+                    {% endfor %}
+                </ul>
+                <div class="text-xs text-gray-400 mt-2 italic">
+                    These are your natural talents. Double down on them.
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if current_evaluation.recurring_patterns %}
+        <div class="mb-6">
+            <div class="text-sm font-bold text-yellow-400 mb-2">🔁 RECURRING PATTERNS</div>
+            <div class="bg-yellow-900 bg-opacity-20 p-3 border-l-4 border-yellow-500">
+                <ul class="text-sm space-y-1">
+                    {% for pattern in current_evaluation.recurring_patterns %}
+                    <li>• {{ pattern }}</li>
+                    {% endfor %}
+                </ul>
+                <div class="text-xs text-gray-400 mt-2 italic">
+                    Habits you default to. Breaking these will level up your writing.
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if current_evaluation.concrete_next_steps %}
+        <div class="mb-6">
+            <div class="text-sm font-bold text-purple-400 mb-2">→ CONCRETE NEXT STEPS</div>
+            <div class="bg-purple-900 bg-opacity-20 p-3 border-l-4 border-purple-500">
+                <ol class="text-sm space-y-2">
+                    {% for step in current_evaluation.concrete_next_steps %}
+                    <li class="pl-2"><strong>{{ forloop.counter }}.</strong> {{ step }}</li>
+                    {% endfor %}
+                </ol>
+                <div class="text-xs text-gray-400 mt-3 italic">
+                    Apply these to your next draft. Track your improvement over time.
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- STRUCTURAL ANALYSIS -->
+    <div class="brutalist-box p-6 mb-6">
+        <h3 class="text-xl font-bold border-b-2 border-white pb-2 mb-4">
+            ═══ STRUCTURAL ANALYSIS ═══
+        </h3>
+
+        <!-- Abstract Nouns -->
+        {% if current_evaluation.abstract_nouns %}
+        <div class="mb-6">
+            <div class="text-sm font-bold text-red-400 mb-2">⚠ ABSTRACT NOUNS DETECTED (Orwell violation)</div>
+            <div class="bg-red-900 bg-opacity-20 p-3 border-l-4 border-red-500">
+                <div class="text-sm">
+                    {% for noun in current_evaluation.abstract_nouns %}
+                    <span class="inline-block bg-red-800 px-2 py-1 mr-2 mb-2 text-xs">{{ noun }}</span>
+                    {% endfor %}
+                </div>
+                <div class="text-xs text-gray-400 mt-2">
+                    Replace with concrete, specific language. What exact thing are you talking about?
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Passive Voice -->
+        {% if highlighted_draft %}
+        <div class="mb-6">
+            <div class="text-sm font-bold text-yellow-400 mb-2">⚠ PASSIVE VOICE SENTENCES HIGHLIGHTED</div>
+            <div class="bg-yellow-900 bg-opacity-20 p-4 border-l-4 border-yellow-500">
+                <div class="text-sm font-mono whitespace-pre-wrap">{{ highlighted_draft|safe }}</div>
+            </div>
+            <div class="text-xs text-gray-400 mt-2">
+                Active voice carries conviction. Who is doing what?
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Jargon Violations -->
+        {% if current_evaluation.jargon_violations %}
+        <div class="mb-6">
+            <div class="text-sm font-bold text-orange-400 mb-2">⚠ JARGON / EUPHEMISMS DETECTED</div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead>
+                        <tr class="text-gray-400 border-b border-gray-700">
+                            <th class="px-3 py-2 text-left">Forbidden Term</th>
+                            <th class="px-3 py-2 text-left">Suggested Replacements</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for term, alternatives in current_evaluation.jargon_violations.items %}
+                        <tr class="border-t border-gray-800">
+                            <td class="px-3 py-2 font-bold text-red-400">{{ term }}</td>
+                            <td class="px-3 py-2 text-green-400">{{ alternatives|join:', ' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Weak Verbs -->
+        {% if current_evaluation.weak_verbs %}
+        <div class="mb-6">
+            <div class="text-sm font-bold text-purple-400 mb-2">⚠ WEAK VERBS DETECTED</div>
+            <div class="bg-purple-900 bg-opacity-20 p-3 border-l-4 border-purple-500">
+                <div class="text-sm">
+                    {% for verb in current_evaluation.weak_verbs %}
+                    <span class="inline-block bg-purple-800 px-2 py-1 mr-2 mb-2 text-xs">{{ verb }}</span>
+                    {% endfor %}
+                </div>
+                <div class="text-xs text-gray-400 mt-2">
+                    Replace "is", "has", "seems" with action verbs that show rather than tell.
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Rhetorical Highlights -->
+        {% if current_evaluation.rhetorical_highlights %}
+        <div class="mb-6">
+            <div class="text-sm font-bold text-green-400 mb-2">✓ RHETORICAL STRENGTHS</div>
+            <div class="bg-green-900 bg-opacity-20 p-3 border-l-4 border-green-500">
+                <ul class="text-sm space-y-1">
+                    {% for highlight in current_evaluation.rhetorical_highlights %}
+                    <li>• {{ highlight }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- RAW LLM CRITIQUES -->
+    <div class="space-y-6">
+        
+        <div class="brutalist-box p-6">
+            <h3 class="text-lg font-bold border-b-2 border-green-500 pb-2 mb-4">
+                CLAUDE SONNET 4 ANALYSIS
+            </h3>
+            <pre class="text-sm text-green-400 whitespace-pre-wrap">{{ current_evaluation.claude_critique }}</pre>
+        </div>
+        
+        <div class="brutalist-box p-6">
+            <h3 class="text-lg font-bold border-b-2 border-blue-500 pb-2 mb-4">
+                GPT-4O ANALYSIS
+            </h3>
+            <pre class="text-sm text-blue-400 whitespace-pre-wrap">{{ current_evaluation.gpt_critique }}</pre>
+        </div>
+        
+        <div class="brutalist-box p-6">
+            <h3 class="text-lg font-bold border-b-2 border-yellow-500 pb-2 mb-4">
+                GEMINI 2.0 FLASH ANALYSIS
+            </h3>
+            <pre class="text-sm text-yellow-400 whitespace-pre-wrap">{{ current_evaluation.gemini_critique }}</pre>
+        </div>
+        
+    </div>
+    {% endif %}
+    
+    <!-- PUBLISHED PIECES (CALIBRATION DATA) -->
+    <div class="brutalist-box p-6 mt-6">
+        <h3 class="text-lg font-bold border-b-2 border-white pb-2 mb-4">
+            YOUR PUBLISHED WORK (CALIBRATION)
+        </h3>
+        {% if published_pieces %}
+            {% for piece in published_pieces %}
+            <div class="border-b border-gray-800 pb-3 mb-3">
+                <div class="text-xs text-gray-500">{{ piece.published_date }} - {{ piece.publication }}</div>
+                <div class="font-bold">{{ piece.title }}</div>
+                <div class="text-xs text-gray-400 mt-1">
+                    Citations: {{ piece.citation_count }} | Shares: {{ piece.social_shares }} | Comments: {{ piece.comments_count }}
+                    {% if piece.clarity_rating %}| Clarity: {{ piece.clarity_rating }}/10{% endif %}
+                    {% if piece.impact_rating %}| Impact: {{ piece.impact_rating }}/10{% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-gray-500">No published pieces recorded. Add via Django admin for better calibration.</p>
+        {% endif %}
+    </div>
+
+</div>
+
+</body>
+</html>
+
