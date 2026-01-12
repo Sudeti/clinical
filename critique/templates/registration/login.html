@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-black">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Sovereign Critic</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+        body { font-family: 'JetBrains Mono', monospace; }
+        .brutalist-box { border: 3px solid #fff; background: #0a0a0a; }
+    </style>
+</head>
+<body class="bg-black text-white p-6">
+
+<div class="max-w-2xl mx-auto mt-20">
+    
+    <div class="brutalist-box p-6 mb-6">
+        <h1 class="text-3xl font-bold mb-2">═══ LOGIN ═══</h1>
+        <p class="text-sm text-gray-400">Sovereign Critic System Access</p>
+    </div>
+    
+    {% if form.errors %}
+        <div class="brutalist-box p-4 mb-4 border-red-500">
+            <p class="text-red-400 font-bold">⚠ ERROR</p>
+            <p class="text-sm mt-2">Your username and password didn't match. Please try again.</p>
+        </div>
+    {% endif %}
+    
+    {% if next %}
+        {% if user.is_authenticated %}
+        <div class="brutalist-box p-4 mb-4 border-yellow-500">
+            <p class="text-yellow-400 font-bold">⚠ ACCESS DENIED</p>
+            <p class="text-sm mt-2">Your account doesn't have access to this page. To proceed, please login with an account that has access.</p>
+        </div>
+        {% else %}
+        <div class="brutalist-box p-4 mb-4 border-blue-500">
+            <p class="text-blue-400 font-bold">ℹ AUTHENTICATION REQUIRED</p>
+            <p class="text-sm mt-2">Please login to see this page.</p>
+        </div>
+        {% endif %}
+    {% endif %}
+    
+    <div class="brutalist-box p-6">
+        <form method="post" action="{% url 'login' %}" class="space-y-4">
+            {% csrf_token %}
+            
+            <div>
+                <label for="{{ form.username.id_for_label }}" class="block text-sm mb-2 font-bold">
+                    USERNAME
+                </label>
+                <input 
+                    type="text" 
+                    name="{{ form.username.name }}"
+                    id="{{ form.username.id_for_label }}"
+                    required
+                    autofocus
+                    class="w-full bg-black text-white border-2 border-white p-3 font-mono focus:outline-none focus:border-green-500"
+                    placeholder="Enter username"
+                />
+            </div>
+            
+            <div>
+                <label for="{{ form.password.id_for_label }}" class="block text-sm mb-2 font-bold">
+                    PASSWORD
+                </label>
+                <input 
+                    type="password" 
+                    name="{{ form.password.name }}"
+                    id="{{ form.password.id_for_label }}"
+                    required
+                    class="w-full bg-black text-white border-2 border-white p-3 font-mono focus:outline-none focus:border-green-500"
+                    placeholder="Enter password"
+                />
+            </div>
+            
+            <input type="hidden" name="next" value="{{ next }}" />
+            
+            <button 
+                type="submit"
+                class="w-full brutalist-box p-4 bg-black border-2 border-green-500 text-green-400 font-bold hover:bg-green-950 transition-colors"
+            >
+                → LOGIN
+            </button>
+        </form>
+        
+        <div class="mt-6 pt-6 border-t-2 border-white">
+            <p class="text-xs text-gray-400">
+                Need an account? Contact your administrator or use the 
+                <a href="{% url 'admin:index' %}" class="text-blue-400 hover:text-blue-300 underline">Django Admin</a> 
+                to create a user.
+            </p>
+        </div>
+    </div>
+    
+</div>
+
+</body>
+</html>

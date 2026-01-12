@@ -141,3 +141,7 @@ EXTRACTOR_MODEL = os.getenv('EXTRACTOR_MODEL', 'gpt-4o-mini')
 # Development/testing helper: use a local, deterministic extractor and fake embeddings when True
 CLAIMS_USE_FAKE_EXTRACTOR = os.getenv('CLAIMS_USE_FAKE_EXTRACTOR', 'False') == 'True'
 EMBEDDING_DIM = int(os.getenv('EMBEDDING_DIM', '1536'))
+
+# Authentication settings
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
