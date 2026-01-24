@@ -174,9 +174,35 @@ Comment:"""
                 full_prompt,
                 generation_config=genai.types.GenerationConfig(
                     temperature=0.4,
-                    max_output_tokens=1000  # Increased from 500 to prevent truncation
-                )
+                    max_output_tokens=1000,  # Increased from 500 to prevent truncation
+                ),
+                safety_settings=[
+                    {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+                    {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+                    {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+                    {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
+                ]
             )
+            
+            # Check if response was blocked or has no content
+            if not response.candidates or len(response.candidates) == 0:
+                return "Gemini generation failed: No candidates returned (content may have been blocked)"
+            
+            candidate = response.candidates[0]
+            if candidate.finish_reason and candidate.finish_reason != 1:  # 1 = STOP (normal), others are issues
+                finish_reasons = {
+                    2: "SAFETY (content blocked by safety filters)",
+                    3: "RECITATION (content matched blocked content)",
+                    4: "OTHER (unknown reason)",
+                    5: "MAX_TOKENS (response too long)"
+                }
+                reason = finish_reasons.get(candidate.finish_reason, f"Unknown reason ({candidate.finish_reason})")
+                return f"Gemini generation blocked: {reason}"
+            
+            # Check if content parts exist
+            if not candidate.content or not candidate.content.parts:
+                return "Gemini generation failed: No content parts in response"
+            
             # Clean up the response
             text = response.text.strip()
             
@@ -225,5 +251,179 @@ Comment:"""
                 source_text,
                 "3 (Counterpoint/Refinement - respectful challenge or extension of ideas)"
             )
+        }
+
+
+class MetalinguisticHypocrisyGenerator:
+    """
+    Metalinguistic Hypocrisy Comment Generator - Analyzes posts for hypocrisy
+    between the message (What) and delivery (How), generating clinical rebuttals.
+    """
+    
+    def __init__(self):
+        # Initialize API clients
+        self.claude_client = anthropic.Anthropic(
+            api_key=os.environ.get("ANTHROPIC_API_KEY")
+        )
+        self.openai_client = openai.OpenAI(
+            api_key=os.environ.get("OPENAI_API_KEY")
+        )
+        genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+        
+        self.base_prompt = self._build_base_prompt()
+    
+    def _build_base_prompt(self) -> str:
+        """
+        Build the base prompt for Metalinguistic Hypocrisy analysis.
+        """
+        prompt = """Analyze the attached post for Metalinguistic Hypocrisy.
+
+Extract the Core Directive: Identify the single, underlying piece of advice the author is giving (the 'What').
+
+Audit the Delivery: Identify the stylistic choices the author used—such as anecdotes, repetition, or dramatic formatting—that violate their own 'What' (the 'How').
+
+The Rebuttal: Draft a one-sentence response that applies the author's own advice to the post itself.
+
+
+Tone: Clinical, observational, and entirely free of emotional or defensive language.
+
+POST TO ANALYZE:
+"""
+        return prompt
+    
+    def _generate_with_claude(self, source_text: str) -> str:
+        """Generate comment using Claude."""
+        try:
+            angle_prompt = """
+
+CRITICAL: Output ONLY the comment text itself. No explanations, no prefixes, no markdown. Just write the complete comment as you would post it on LinkedIn. The comment should be a single sentence that applies the author's own advice to their post itself, pointing out the metalinguistic hypocrisy in a clinical, observational tone.
+
+Comment:"""
+            full_prompt = self.base_prompt + source_text + angle_prompt
+            
+            message = self.claude_client.messages.create(
+                model="claude-sonnet-4-20250514",
+                max_tokens=500,
+                temperature=0.3,
+                messages=[{
+                    "role": "user",
+                    "content": full_prompt
+                }]
+            )
+            text = message.content[0].text.strip()
+            # Remove any prefixes Claude might add
+            if text.startswith("Comment:"):
+                text = text[8:].strip()
+            return text
+        except Exception as e:
+            return f"Claude generation failed: {str(e)}"
+    
+    def _generate_with_gpt(self, source_text: str) -> str:
+        """Generate comment using GPT."""
+        try:
+            angle_prompt = """
+
+CRITICAL: Output ONLY the comment text itself. No explanations, no prefixes, no markdown. Just write the complete comment as you would post it on LinkedIn. The comment should be a single sentence that applies the author's own advice to their post itself, pointing out the metalinguistic hypocrisy in a clinical, observational tone.
+
+Comment:"""
+            full_prompt = self.base_prompt + source_text + angle_prompt
+            
+            response = self.openai_client.chat.completions.create(
+                model="gpt-5.2-2025-12-11",
+                messages=[
+                    {"role": "system", "content": "You are a clinical, observational comment generator for LinkedIn. Output only the comment text, nothing else. Generate a single sentence that applies the author's own advice to their post, pointing out metalinguistic hypocrisy."},
+                    {"role": "user", "content": full_prompt}
+                ],
+                temperature=0.3,
+                max_completion_tokens=500
+            )
+            text = response.choices[0].message.content.strip()
+            # Remove any prefixes GPT might add
+            if text.startswith("Comment:"):
+                text = text[8:].strip()
+            return text
+        except Exception as e:
+            return f"GPT generation failed: {str(e)}"
+    
+    def _generate_with_gemini(self, source_text: str) -> str:
+        """Generate comment using Gemini."""
+        try:
+            angle_prompt = """
+
+CRITICAL: Output ONLY the comment text itself. No explanations, no prefixes like "Comment:", no markdown formatting, no bullet points. Just write the comment as you would post it on LinkedIn. The comment should be a single sentence that applies the author's own advice to their post itself, pointing out the metalinguistic hypocrisy in a clinical, observational tone.
+
+Comment:"""
+            full_prompt = self.base_prompt + source_text + angle_prompt
+            
+            model = genai.GenerativeModel('gemini-3-pro-preview')
+            response = model.generate_content(
+                full_prompt,
+                generation_config=genai.types.GenerationConfig(
+                    temperature=0.3,
+                    max_output_tokens=500
+                ),
+                safety_settings=[
+                    {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+                    {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+                    {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+                    {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
+                ]
+            )
+            
+            # Check if response was blocked or has no content
+            if not response.candidates or len(response.candidates) == 0:
+                return "Gemini generation failed: No candidates returned (content may have been blocked)"
+            
+            candidate = response.candidates[0]
+            if candidate.finish_reason and candidate.finish_reason != 1:  # 1 = STOP (normal), others are issues
+                finish_reasons = {
+                    2: "SAFETY (content blocked by safety filters)",
+                    3: "RECITATION (content matched blocked content)",
+                    4: "OTHER (unknown reason)",
+                    5: "MAX_TOKENS (response too long)"
+                }
+                reason = finish_reasons.get(candidate.finish_reason, f"Unknown reason ({candidate.finish_reason})")
+                return f"Gemini generation blocked: {reason}"
+            
+            # Check if content parts exist
+            if not candidate.content or not candidate.content.parts:
+                return "Gemini generation failed: No content parts in response"
+            
+            # Clean up the response
+            text = response.text.strip()
+            
+            # Remove common prefixes that Gemini might add
+            prefixes_to_remove = [
+                "Comment:",
+                "**Comment:**",
+                "*Comment:*"
+            ]
+            for prefix in prefixes_to_remove:
+                if text.startswith(prefix):
+                    text = text[len(prefix):].strip()
+            
+            # Remove markdown formatting
+            text = text.replace('**', '').replace('*', '').strip()
+            
+            return text
+        except Exception as e:
+            return f"Gemini generation failed: {str(e)}"
+    
+    def generate_three_options(self, source_text: str) -> Dict[str, str]:
+        """
+        Generate 3 comment options using different LLMs for diversity.
+        Each LLM generates one option analyzing metalinguistic hypocrisy.
+        
+        Returns:
+            {
+                'option_1': str,  # Claude analysis
+                'option_2': str,  # GPT analysis
+                'option_3': str   # Gemini analysis
+            }
+        """
+        return {
+            'option_1': self._generate_with_claude(source_text),
+            'option_2': self._generate_with_gpt(source_text),
+            'option_3': self._generate_with_gemini(source_text)
         }
 

@@ -4,7 +4,7 @@ from django.contrib import messages
 from .models import PersonaBio, ArchivedPost, DraftCritique, CommentGeneration
 from .llm_evaluators import SovereignCriticEngine
 from .analyzers import CritiqueAnalyzer  # NEW IMPORT
-from .comment_generator import CommentGenerator
+from .comment_generator import CommentGenerator, MetalinguisticHypocrisyGenerator
 
 
 @login_required
@@ -160,3 +160,52 @@ def select_comment_option(request, generation_id, option_number):
     except CommentGeneration.DoesNotExist:
         messages.error(request, "Comment generation not found.")
         return redirect('generate_comment')
+
+
+@login_required
+def generate_hypocrisy_comment(request):
+    """
+    Metalinguistic Hypocrisy Comment Generator - Analyzes posts for hypocrisy
+    between the message (What) and delivery (How), generating clinical rebuttals.
+    """
+    recent_generations = CommentGeneration.objects.filter(user=request.user)[:5]
+    
+    context = {
+        'recent_generations': recent_generations
+    }
+    
+    if request.method == 'POST':
+        source_url = request.POST.get('source_url', '').strip()
+        source_text = request.POST.get('source_text', '').strip()
+        
+        if not source_text:
+            messages.error(request, "Source text or URL required.")
+            return render(request, 'generate_hypocrisy_comment.html', context)
+        
+        if len(source_text) < 20:
+            messages.error(request, "Source text too short (minimum 20 characters).")
+            return render(request, 'generate_hypocrisy_comment.html', context)
+        
+        # Generate comment options using Metalinguistic Hypocrisy Generator
+        generator = MetalinguisticHypocrisyGenerator()
+        options = generator.generate_three_options(source_text)
+        
+        # Save to database
+        comment_gen = CommentGeneration.objects.create(
+            user=request.user,
+            source_url=source_url if source_url else '',
+            source_text=source_text,
+            comment_option_1=options['option_1'],
+            comment_option_2=options['option_2'],
+            comment_option_3=options['option_3']
+        )
+        
+        messages.success(
+            request,
+            f"Generated 3 metalinguistic hypocrisy analyses (Generation #{comment_gen.id}). "
+            "Select the best one to copy."
+        )
+        
+        context['current_generation'] = comment_gen
+    
+    return render(request, 'generate_hypocrisy_comment.html', context)
