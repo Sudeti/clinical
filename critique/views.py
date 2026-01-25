@@ -1,10 +1,17 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse
 from django.contrib import messages
 from .models import PersonaBio, ArchivedPost, DraftCritique, CommentGeneration
 from .llm_evaluators import SovereignCriticEngine
 from .analyzers import CritiqueAnalyzer  # NEW IMPORT
-from .comment_generator import CommentGenerator, MetalinguisticHypocrisyGenerator
+from .comment_generator import (
+    CommentGenerator,
+    MetalinguisticHypocrisyGenerator,
+    ClinicalSovereignXGenerator,
+    X_MAX_CHARS,
+    _char_count_info,
+)
 
 
 @login_required
@@ -209,3 +216,84 @@ def generate_hypocrisy_comment(request):
         context['current_generation'] = comment_gen
     
     return render(request, 'generate_hypocrisy_comment.html', context)
+
+
+@login_required
+def generate_clinical_sovereign_x(request):
+    """
+    Clinical Sovereign X (Twitter) Reply Generator — Manual Review Dashboard.
+
+    Generates 3 reply options (Claude, GPT, Gemini) for X posts from Authority
+    Nodes. Follows Hook / Payload / Closer architecture. All options must be
+    ≤ 280 characters; UI flags over-limit.
+    """
+    persona, _ = PersonaBio.objects.get_or_create(
+        user=request.user,
+        defaults={
+            "professional_title": "Policy Analyst",
+            "core_expertise": "International governance, EU integration.",
+        },
+    )
+    recent_generations = CommentGeneration.objects.filter(user=request.user)[:5]
+    context = {
+        "persona": persona,
+        "recent_generations": recent_generations,
+        "x_max_chars": X_MAX_CHARS,
+    }
+
+    generation_id = request.GET.get("generation_id")
+    if generation_id and request.method != "POST":
+        comment_gen = get_object_or_404(
+            CommentGeneration, id=generation_id, user=request.user
+        )
+        context["current_generation"] = comment_gen
+        context["option_1_chars"] = _char_count_info(comment_gen.comment_option_1)
+        context["option_2_chars"] = _char_count_info(comment_gen.comment_option_2)
+        context["option_3_chars"] = _char_count_info(comment_gen.comment_option_3)
+
+    if request.method == "POST":
+        source_url = request.POST.get("source_url", "").strip()
+        source_text = request.POST.get("source_text", "").strip()
+        use_context_anchor = request.POST.get("use_context_anchor") == "on"
+
+        if not source_text:
+            messages.error(request, "Source text required.")
+            return render(request, "generate_clinical_sovereign_x.html", context)
+        if len(source_text) < 20:
+            messages.error(request, "Source text too short (minimum 20 characters).")
+            return render(request, "generate_clinical_sovereign_x.html", context)
+
+        generator = ClinicalSovereignXGenerator(persona_bio=persona, use_context_anchor=use_context_anchor)
+        options = generator.generate_three_options(source_text)
+
+        comment_gen = CommentGeneration.objects.create(
+            user=request.user,
+            source_url=source_url or "",
+            source_text=source_text,
+            comment_option_1=options["option_1"],
+            comment_option_2=options["option_2"],
+            comment_option_3=options["option_3"],
+        )
+
+        context["current_generation"] = comment_gen
+        context["option_1_chars"] = _char_count_info(options["option_1"])
+        context["option_2_chars"] = _char_count_info(options["option_2"])
+        context["option_3_chars"] = _char_count_info(options["option_3"])
+
+        messages.success(
+            request,
+            f"Generated 3 Clinical Sovereign X options (Generation #{comment_gen.id}). "
+            "Pick the most axiomatic. Change first or last word before pasting. Dwell 15s on thread.",
+        )
+
+    return render(request, "generate_clinical_sovereign_x.html", context)
+
+
+@login_required
+def select_sovereign_x_option(request, generation_id, option_number):
+    """Mark selected option for a Clinical Sovereign X generation; redirect back to dashboard."""
+    comment_gen = get_object_or_404(CommentGeneration, id=generation_id, user=request.user)
+    comment_gen.selected_option = option_number
+    comment_gen.save()
+    messages.success(request, f"Option {option_number} marked as selected.")
+    return redirect(reverse("generate_clinical_sovereign_x") + f"?generation_id={generation_id}")

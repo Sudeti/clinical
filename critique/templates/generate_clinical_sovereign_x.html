@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-black">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinical Sovereign X — Manual Review Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+        body { font-family: 'JetBrains Mono', monospace; }
+        .brutalist-box { border: 3px solid #fff; background: #0a0a0a; }
+    </style>
+</head>
+<body class="bg-black text-white p-6">
+
+<div class="max-w-7xl mx-auto">
+
+    <div class="brutalist-box p-6 mb-6">
+        <h1 class="text-3xl font-bold">═══ CLINICAL SOVEREIGN X ═══</h1>
+        <p class="text-sm text-gray-400 mt-2">Manual Review Dashboard | Hook → Payload → Closer | ≤{{ x_max_chars }} chars</p>
+        <div class="mt-4">
+            <a href="/" class="text-green-400 hover:text-green-300 underline">← Draft Critique</a>
+            &nbsp;|&nbsp;
+            <a href="{% url 'generate_comment' %}" class="text-blue-400 hover:text-blue-300 underline">Arbitrage Engine</a>
+            &nbsp;|&nbsp;
+            <a href="{% url 'generate_hypocrisy_comment' %}" class="text-purple-400 hover:text-purple-300 underline">Hypocrisy Analyzer</a>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+        <div class="brutalist-box p-4 mb-4 {% if message.tags == 'error' %}border-red-500{% else %}border-green-500{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="brutalist-box p-4 mb-6 border-l-4 border-amber-500">
+        <p class="text-xs text-gray-300 mb-2"><strong>Protocol:</strong></p>
+        <ul class="text-xs text-gray-400 list-disc list-inside space-y-1">
+            <li>Pick the most <strong class="text-amber-400">axiomatic</strong> option. Manually change first or last word to break AI fingerprints.</li>
+            <li><strong class="text-red-400">Do not paste</strong> if over {{ x_max_chars }} chars — flag shown below.</li>
+            <li>Dwell 15 seconds on the thread after pasting. Variable latency; avoid same-time daily posts.</li>
+        </ul>
+        <p class="text-xs text-gray-300 mt-3 mb-1"><strong>Axiomatic comparison (by target):</strong></p>
+        <ul class="text-xs text-gray-400 list-disc list-inside space-y-0.5">
+            <li><strong class="text-amber-400">Academic / Think Tank</strong> → Claude (Analytical Architect). Matches depth; sounds like a peer.</li>
+            <li><strong class="text-amber-400">High-level diplomat</strong> → GPT (Framework Kinetic). Gives a takeaway framework they can use.</li>
+            <li><strong class="text-amber-400">Technical / data expert</strong> → Gemini (Counterpoint/Refiner). Spotlights the technical glitch in their logic.</li>
+        </ul>
+    </div>
+
+    <div class="brutalist-box p-6 mb-6">
+        <h2 class="text-xl font-bold mb-4 border-b-2 border-white pb-2">GENERATE X REPLY OPTIONS</h2>
+        <form method="POST" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-sm mb-2">X (TWITTER) URL (Optional)</label>
+                <input type="url" name="source_url" class="w-full bg-black text-white border-2 border-white p-3 font-mono focus:outline-none focus:border-amber-500"
+                    placeholder="https://x.com/... or https://twitter.com/..." />
+            </div>
+            <div>
+                <label class="block text-sm mb-2">POST TEXT TO REPLY TO (min 20 chars)</label>
+                <textarea name="source_text" rows="6" class="w-full bg-black text-white border-2 border-white p-4 font-mono focus:outline-none focus:border-amber-500"
+                    placeholder="Paste the X post from Authority Nodes (NATO, EU, Geneva, Brussels Tech, Balkan Integration)..."
+                    required></textarea>
+            </div>
+            <div class="flex items-center gap-2">
+                <input type="checkbox" name="use_context_anchor" id="use_context_anchor" class="rounded border-2 border-amber-500 bg-black" />
+                <label for="use_context_anchor" class="text-sm text-gray-400">Use <strong>context anchor</strong> (localized detail: Ministry, Marshall Center, etc.)</label>
+            </div>
+            <button type="submit" class="brutalist-box bg-black text-white px-8 py-3 hover:bg-white hover:text-black transition-colors font-bold">
+                GENERATE 3 OPTIONS
+            </button>
+        </form>
+    </div>
+
+    {% if current_generation %}
+    <div class="brutalist-box p-6 mb-6">
+        <h3 class="text-xl font-bold border-b-2 border-white pb-2 mb-4">═══ MANUAL REVIEW — CLAUDE | GPT | GEMINI ═══</h3>
+        <div class="mb-4 p-4 bg-slate-900 border-l-4 border-gray-600">
+            <div class="text-xs text-gray-400 mb-2">ORIGINAL SOURCE:</div>
+            <div class="text-sm">{{ current_generation.source_text|truncatewords:50 }}</div>
+            {% if current_generation.source_url %}
+            <div class="mt-2">
+                <a href="{{ current_generation.source_url }}" target="_blank" class="text-amber-400 hover:underline text-xs">View on X →</a>
+            </div>
+            {% endif %}
+        </div>
+
+        {% with o1=current_generation.comment_option_1 o2=current_generation.comment_option_2 o3=current_generation.comment_option_3 c1=option_1_chars c2=option_2_chars c3=option_3_chars %}
+        <div class="border-2 border-amber-500 p-6 mb-4">
+            <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+                <div>
+                    <h4 class="font-bold text-lg text-amber-400">OPTION 1: CLAUDE — Analytical Architect</h4>
+                    <p class="text-xs text-gray-400">Systems-level · calculation failure · Phase Transition · 2-sentence verdict. Best for Academic/Think Tank.</p>
+                </div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-xs font-mono {% if c1.over_limit %}text-red-400 font-bold{% else %}text-gray-400{% endif %}">
+                        {{ c1.count }}/{{ x_max_chars }}{% if c1.over_limit %} — OVER LIMIT, DO NOT PASTE{% endif %}
+                    </span>
+                    <button onclick="copyToClipboard('option-1')" class="brutalist-box bg-black text-white px-4 py-2 text-sm hover:bg-white hover:text-black">COPY</button>
+                    <a href="{% url 'select_sovereign_x_option' current_generation.id 1 %}" class="brutalist-box bg-amber-900 text-white px-4 py-2 text-sm hover:bg-amber-700 {% if current_generation.selected_option == 1 %}border-4{% endif %}">
+                        {% if current_generation.selected_option == 1 %}✓ SELECTED{% else %}SELECT{% endif %}
+                    </a>
+                </div>
+            </div>
+            <pre id="option-1" class="whitespace-pre-wrap font-mono text-sm bg-slate-900 p-4 border-l-4 border-amber-500">{{ o1 }}</pre>
+        </div>
+
+        <div class="border-2 border-amber-500 p-6 mb-4">
+            <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+                <div>
+                    <h4 class="font-bold text-lg text-amber-400">OPTION 2: GPT — Framework Kinetic</h4>
+                    <p class="text-xs text-gray-400">Third Object · Transparency Trap / Friction Paradox · &lt;240 chars preferred. Best for High-level diplomat.</p>
+                </div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-xs font-mono {% if c2.over_limit %}text-red-400 font-bold{% else %}text-gray-400{% endif %}">
+                        {{ c2.count }}/{{ x_max_chars }}{% if c2.over_limit %} — OVER LIMIT, DO NOT PASTE{% endif %}
+                    </span>
+                    <button onclick="copyToClipboard('option-2')" class="brutalist-box bg-black text-white px-4 py-2 text-sm hover:bg-white hover:text-black">COPY</button>
+                    <a href="{% url 'select_sovereign_x_option' current_generation.id 2 %}" class="brutalist-box bg-amber-900 text-white px-4 py-2 text-sm hover:bg-amber-700 {% if current_generation.selected_option == 2 %}border-4{% endif %}">
+                        {% if current_generation.selected_option == 2 %}✓ SELECTED{% else %}SELECT{% endif %}
+                    </a>
+                </div>
+            </div>
+            <pre id="option-2" class="whitespace-pre-wrap font-mono text-sm bg-slate-900 p-4 border-l-4 border-amber-500">{{ o2 }}</pre>
+        </div>
+
+        <div class="border-2 border-amber-500 p-6 mb-4">
+            <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+                <div>
+                    <h4 class="font-bold text-lg text-amber-400">OPTION 3: GEMINI — Counterpoint / Refiner</h4>
+                    <p class="text-xs text-gray-400">Blind spot · metalinguistic hypocrisy · Binary Condition (programi.al). Best for Technical/data expert.</p>
+                </div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-xs font-mono {% if c3.over_limit %}text-red-400 font-bold{% else %}text-gray-400{% endif %}">
+                        {{ c3.count }}/{{ x_max_chars }}{% if c3.over_limit %} — OVER LIMIT, DO NOT PASTE{% endif %}
+                    </span>
+                    <button onclick="copyToClipboard('option-3')" class="brutalist-box bg-black text-white px-4 py-2 text-sm hover:bg-white hover:text-black">COPY</button>
+                    <a href="{% url 'select_sovereign_x_option' current_generation.id 3 %}" class="brutalist-box bg-amber-900 text-white px-4 py-2 text-sm hover:bg-amber-700 {% if current_generation.selected_option == 3 %}border-4{% endif %}">
+                        {% if current_generation.selected_option == 3 %}✓ SELECTED{% else %}SELECT{% endif %}
+                    </a>
+                </div>
+            </div>
+            <pre id="option-3" class="whitespace-pre-wrap font-mono text-sm bg-slate-900 p-4 border-l-4 border-amber-500">{{ o3 }}</pre>
+        </div>
+        {% endwith %}
+    </div>
+    {% endif %}
+
+    {% if recent_generations %}
+    <div class="brutalist-box p-6 mt-6">
+        <h3 class="text-lg font-bold border-b-2 border-white pb-2 mb-4">RECENT GENERATIONS</h3>
+        {% for gen in recent_generations %}
+        <div class="border-b border-gray-800 pb-3 mb-3">
+            <div class="text-xs text-gray-500">{{ gen.created_at|date:"Y-m-d H:i" }}</div>
+            <div class="text-sm font-mono mt-1">{{ gen.source_text|truncatewords:20 }}</div>
+            <div class="text-xs text-gray-400 mt-1 flex gap-2">
+                {% if gen.selected_option %}Selected: Option {{ gen.selected_option }}{% else %}No option selected{% endif %}
+                <a href="?generation_id={{ gen.id }}" class="text-amber-400 hover:underline">Review →</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</div>
+
+<script>
+function copyToClipboard(elementId) {
+    const text = document.getElementById(elementId).innerText;
+    navigator.clipboard.writeText(text).then(() => { alert('Copied to clipboard!'); });
+}
+</script>
+
+</body>
+</html>
